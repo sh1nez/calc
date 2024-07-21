@@ -1,24 +1,23 @@
 section .text
-	global str2int
+	global input_str2int
 	global int2str
-	global strlen
 
 ; rsi - string
-str2int: ; -> rax
-	xor rax, rax
-	mov rcx, 10
-.str_loop:
-	movzx rbx, byte [rsi] ; с расширение берём первый байт из rsi
-	test rdx, rdx; если строка кончилась
-	jz .done
-	sub rbx, '0'
-	mul rcx
-	add rax, rbx
-	inc rsi
-	dec rdx
-	jmp .str_loop
+input_str2int: ; -> rax
+	xor rax, rax    
+	mov rcx, 10  
+
+.loop:
+    movzx rbx, byte [rsi]
+    cmp rbx, 10         
+    je .done           
+    sub rbx, '0'      
+    mul rcx          
+    add rax, rbx     
+    inc rsi          
+    jmp .loop 
 .done:
-	ret
+    ret             
 
 ; rax - num
 ; rsi - fd
@@ -27,8 +26,8 @@ int2str: ; -> rsi
 	mov rbx, 10
 	mov rcx, rsi
 	add rsi, rdx
-	; mov [rsi], 0
-	dec rsi ; указывает на последний действительный элемент буфера
+	mov byte [rsi], 0
+	dec rsi 
 .loop:
 	xor rdx, rdx
 	div rbx
