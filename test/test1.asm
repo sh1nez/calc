@@ -16,6 +16,7 @@ _start:
 	mov rdx, 32
 	call int2str ;
 
+	mov rdx, 4
 	call str2int
 
 	mov rsi, str_buf
