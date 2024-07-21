@@ -1,6 +1,6 @@
-# calc
+# Nasm calculator
 
 Build and run:
 ```bash
-make
+Make
 ```

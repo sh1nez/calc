@@ -1,5 +1,3 @@
-*
-!*.*
 *.o
-!Makefile
+/build/*
 settings.json
