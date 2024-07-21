@@ -1,8 +1,8 @@
 section .bss
 	str_buf resb 32
 section .data
-	string db "12345", 0
-	num dq 1234
+	string db "9999", 0
+	num dq 12345
 
 section .text
 	global _start
@@ -12,6 +12,12 @@ section .text
 
 _start:
 	mov rax, [num]
+	mov rsi, str_buf
+	mov rdx, 32
+	call int2str ;
+
+	call str2int
+
 	mov rsi, str_buf
 	mov rdx, 32
 	call int2str
