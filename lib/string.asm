@@ -39,6 +39,7 @@ int2str: ; -> rsi
 	inc rsi
 	ret
 
+
 ; esi
 strlen: ; -> ecx
 	mov ecx, 0

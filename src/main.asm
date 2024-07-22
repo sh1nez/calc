@@ -10,6 +10,9 @@ section .data
 	len2 equ $ - text2
 	text3 db "Sum is ", 0
 	len3 equ $ - text3
+	text4 db "Enter your operation...", 0
+	len4 equ $ - text4
+
 
 section .text
     global _start
@@ -20,13 +23,13 @@ _start:
 	mov rax, 1
 	mov rdi, 1
 	mov rdx, len1
-	mov rsi, text1
+	mov rsi, text1 ; num1
 	syscall
 
 	mov rax, 0
 	mov rdi, 0
 	mov rdx, 32
-	mov rsi, string
+	mov rsi, string 
 	syscall
 
 	call input_str2int
@@ -35,12 +38,24 @@ _start:
 	mov rax, 1
 	mov rdi, 1
 	mov rdx, len2
-	mov rsi, text2
+	mov rsi, text2 ; num2
 	syscall 
 
 	mov rax, 0
 	mov rdi, 0
 	mov rdx, 32
+	mov rsi, string
+	syscall
+
+	mov rax, 1
+	mov rdi, 1
+	mov rdx, len2
+	mov rsi, text2 ; operator
+	syscall 
+
+	mov rax, 0
+	mov rdi, 0
+	mov rdx, 1
 	mov rsi, string
 	syscall
 

@@ -33,13 +33,27 @@ TEST1_SRC := $(TEST_DIR)/$(TEST1).asm
 TEST1_OBJ := $(BUILD_DIR)/$(patsubst $(TEST_DIR)/%.asm,$(TEST1)/%.o,$(TEST1_SRC))
 TEST1_TARGET := $(BUILD_DIR)/$(TEST1)/$(TEST1)
 
-test1: $(TEST1_SRC)
+test1: $(TEST1_SRC) $(LIB_TARGET)
 	@ mkdir --parents $(BUILD_DIR)/$(TEST1)
 	nasm $(ASFLAGS) -o $(TEST1_TARGET).o $(TEST1_SRC)
 	ld -o $(TEST1_TARGET) $(TEST1_OBJ) $(LIB_TARGET)
 	@ echo -en "\ntest1: "
 	@ ./$(TEST1_TARGET)
 	@ echo
+
+TEST2 := test2
+TEST2_SRC := $(TEST_DIR)/$(TEST2).asm
+TEST2_OBJ := $(BUILD_DIR)/$(patsubst $(TEST_DIR)/%.asm,$(TEST2)/%.o,$(TEST2_SRC))
+TEST2_TARGET := $(BUILD_DIR)/$(TEST2)/$(TEST2)
+
+test2: $(TEST2_SRC) $(LIB_TARGET)
+	@ mkdir --parents $(BUILD_DIR)/$(TEST2)
+	nasm $(ASFLAGS) -o $(TEST2_TARGET).o $(TEST2_SRC)
+	ld -o $(TEST2_TARGET) $(TEST2_OBJ) $(LIB_TARGET)
+	@ echo -en "\ntest2: "
+	@ ./$(TEST2_TARGET)
+	@ echo
+
 
 app: $(LIB_TARGET) $(TARGET)
 

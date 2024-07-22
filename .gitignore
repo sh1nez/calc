@@ -1,3 +1,7 @@
+/*
+!/*.*
+!/*/
+!Makefile
 *.o
 /build/*
 settings.json
