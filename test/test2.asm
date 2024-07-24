@@ -1,12 +1,74 @@
+%macro PRE_SKIP_SPACE 0
+.pre_space_loop:
+	movzx di, byte [rsi]
+	cmp di, ' '
+	je short .pre_space_loop
+%endmacro
+
+%macro POST_SKIP_SPACE 0
+.post_space_loop:
+	cmp rdi, ' '
+	movzx rdi, byte [rsi]
+	je short .post_space_loop
+%endmacro
+
+; rcx - sum
+%marco PARSE_NUM 0
+	xor rax, rax
+	mov rbx, 10
+.num_loop:
+	movzx rdi, byte [rsi]
+	cmp rdi, '0'
+	jb short .num_end
+	cmp rdi, '9'
+	ja short .num_end
+	sub rdi, '0'
+	mul rbx
+	add rax, rdi
+	inc rsi
+	jmp short .num_loop
+.num_end:
+%endmacro
+	
+
+%macro IS_NUM_OR_SIGN 0
+	cmp rbx, '0'
+	jb short .not_num
+	cmp rbx, '9'
+	ja short .not_num
+	jmp short .true_num_sign
+.not_num_sign:
+	cmp rbx, '-'
+	je short .true_num
+	cmp rbx, '+'
+	je short .true_num_sign
+	mov rax, 1
+	ret
+.true_num_sign:
+%endmacro
+
+%macro IS_SIGN 0
+	cmp rbx, '-'
+	je short .true_num
+	cmp rbx, '+'
+	je short .true_num_sign
+	mov rax, 1
+	ret
+.true_num_sign:
+%endmacro
+;
+;
+
 section .bss
 	buffer resb 128
 	output resb 32
 	num1 resb 8
 	num2 resb 8
 	operator resb 1
+	tmp_op resb 1
 
 section .data
-	text1 db "input string (format: 'num1 op num2')", 0
+	text1 db "input string (format: 'num1 op num2'):   ", 0
 	len1 equ $ - text1
 
 section .text
@@ -28,126 +90,112 @@ _start:
 	mov rsi, buffer
 	syscall
 
-	cmp rax, 0
+	call parse
+
+	test rax, rax
+	jnz short .end:
 	jnp .main_loop
+
+.end:
+	call invalid_syntax
 
 	mov rax, 60
 	xor rdi, rdi
 	syscall
 
 
-%macro IS_OP 0
-    cmp rbx, '+' 
-    je short .true_op  
-    cmp rbx, '-' 
-    je short .true_op  
-    cmp rbx, '*' 
-    je short .true_op  
-    cmp rbx, '/' 
-    je short .true_op  
-    cmp rbx, '%' 
-    je short .true_op  
-    mov rax, 1   
-    ret
-.true_op:
-%endmacro
-
-%macro IS_NUM_OR_SIGN 0
-	cmp rbx, '0'
-	jb short .not_num
-	cmp rbx, '9'
-	ja short .not_num
-	jmp short .true_num_sign
-.not_num_sign:
-	cmp rbx, '-'
-	je short .true_num
-	cmp rbx, '+'
-	je short .true_num_sign
-	mov rax, 1
-	ret
-.true_num_sign:
-%endmacro
-
-%macro PRE_SKIP_SPACE 0
-.pre_space_loop
-	movzx rbx, byte [rsi]
-	cmp rbx, ' '
-	je short .pre_space_loop
-%endmacro
-
-%macro POST_SKIP_SPACE 0
-.post_space_loop
-	cmp rbx, ' '
-	movzx rbx, byte [rsi]
-	je short .post_space_loop
-%endmacro
-
-
-; rcx - sum
-%marco PARSE_NUM 0
-	xor rax, rax
+; rax, rdx, rsi
+num2str:
+	push rdx
+	add rsi, rdx
+	mov byte [rsi], '\n'
 	mov rbx, 10
-.num_loop:
-	movzx rdi, byte [rsi]
-	cmp rdi, '0'
-	jb short .
-	cmp rdi, '9'
-	ja short .num_end
-	sub rdi, '0'
-	mul rbx
-	add rcx, rdi
-	inc rsi
-	jmp short .num_loop
-.num_end:
-%endmacro
+.str_loop:
+	xor rdx, rdx
+	div rbx
+	add dl, '0'
+	dec rsi
+	mov byte [rsi], dl
+	test rax, rax
+	jnz .str_loop
+	pop rdx
+	ret
 
-;rsi - buffer
+
+; rsi - buffer
+; rdi - tmp
 parse: ; -> [num1], [num2], [op] 
 	PRE_SKIP_SPACE
 
-	PARSE_NUM
+	IS_NUM_OR_SIGN
 
-	POST_SKIP_SPACE
+	;parse op
+	mov byte [tmp_op], di
 
-	; PARSE_OP
-	mov [operator], [rsi]
-	inc rsi
+	PARSE_NUM ; -> rax
+
+
+	cmp byte [tmp_op], '-'
+	jne .not_neg
+	neg rax
+.not_neg:
+	mov qword [num1], rax
 
 	PRE_SKIP_SPACE
 
-	PARSE_NUM
-	
-	CALC
+	IS_SIGN
+
+	; PARSE_OP
+
+	mov [operator], di
+
+	mov operator
 
 	; if \n -> 
-	OUTPUT
 	; else
-	jmp POST_SKIP_SPACE
 
 
+;
+; %macro PARSE_NUM
+; 	mov r8, 1; for negative
+; 	cmp rbx, '0'
+; 	jb short .not_num_sign
+; 	cmp rbx, '9'
+; 	ja short .not_num_sign
+; 	jmp short .true_num_sign ; если число, значит положительное, парсим дальше
+; .not_num_sign:
+; 	cmp rbx, '-'
+; 	je short .neg_true_num_sign
+; 	cmp rbx, '+'
+; 	je short .true_num_sign
+; 	mov rax, 1
+; 	ret
+; .neg_true_num_sign:
+; 	neg -1
+; .true_num_sign:
+; 	mul r8
+; 	mov [num1], rax
+; %endmacro
 
-@macro PARSE_NUM
-	mov r8, 1; for negative
-	cmp rbx, '0'
-	jb short .not_num_sign
-	cmp rbx, '9'
-	ja short .not_num_sign
-	jmp short .true_num_sign ; если число, значит положительное, парсим дальше
-.not_num_sign:
-	cmp rbx, '-'
-	je short .neg_true_num_sign
-	cmp rbx, '+'
-	je short .true_num_sign
-	mov rax, 1
-	ret
-.neg_true_num_sign:
-	neg -1
-.true_num_sign:
-	mul r8
-	mov [num1], rax
-
-
-
+; %macro IS_OP 0
+;     cmp rbx, '+' 
+;     je short .true_op  
+;     cmp rbx, '-' 
+;     je short .true_op  
+;     cmp rbx, '*' 
+;     je short .true_op  
+;     cmp rbx, '/' 
+;     je short .true_op  
+;     cmp rbx, '%' 
+;     je short .true_op  
+;     mov rax, 1   
+;     ret
+; .true_op:
+; %endmacro
+;
+;
+;
+;
 ; rsi - pointer
 ; rbx
 ; пропускать пока пробелы
