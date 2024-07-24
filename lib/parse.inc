@@ -5,7 +5,8 @@
 	je short .pre_space_loop
 %endmacro
 
-%marco PARSE_NUM 0
+; rcx - sum
+%macro PARSE_NUM 0
 	xor rax, rax
 	mov rbx, 10
 .num_loop:
@@ -21,4 +22,3 @@
 	jmp short .num_loop
 .num_end:
 %endmacro
-

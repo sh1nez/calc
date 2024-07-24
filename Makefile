@@ -16,9 +16,9 @@ all: lib app
 TEST_DIR := test
 LIB_DIR := lib
 LIB_TARGET = $(BUILD_DIR)/$(LIB_DIR)/lib.o
-LIB_SRC := $(wildcard lib/*asm)
+LIB_SRC := $(wildcard lib/*.asm)
 
-test: lib test1
+test: lib test1 test2
 
 
 lib: $(LIB_TARGET)
@@ -26,6 +26,7 @@ lib: $(LIB_TARGET)
 $(LIB_TARGET): $(LIB_SRC)
 	@ mkdir --parents $(BUILD_DIR)/$(LIB_DIR)/
 	@ nasm $(ASFLAGS) -o $(LIB_TARGET) $(LIB_SRC)
+
 
 
 TEST1 := test1
@@ -65,5 +66,5 @@ $(TARGET): $(OBJ)
 	@ ld -o $(TARGET) $(OBJ) $(LIB_TARGET)
 
 clean:
-	@ find src/ test lib/ -type f ! -name "*.asm" -exec rm {} +
+	@ find src/ test/ lib/ -type f ! -name "*.asm" ! -name "*.inc" -exec rm {} +
 	@ rm -fr build/ $(TARGET)

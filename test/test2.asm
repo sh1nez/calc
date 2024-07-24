@@ -1,6 +1,3 @@
-%include "../lib/check.inc"
-%include "../lib/parse.inc"
-
 section .bss
 	buffer resb 128
 	output resb 32
@@ -16,8 +13,7 @@ section .data
 section .text
 	global _start
 	extern invalid_syntax
-	extern num2str
-	extern strlen
+
 
 _start:
 .main_loop:
@@ -37,15 +33,7 @@ _start:
 
 	test rax, rax
 	jnz short .end:
-
-	call calc
-	jrcxz .end
-
-	call strlen ; -> rdx
-
-	call num2str
-
-	jmp .main_loop
+	jnp .main_loop
 
 .end:
 	call invalid_syntax
@@ -53,7 +41,6 @@ _start:
 	mov rax, 60
 	xor rdi, rdi
 	syscall
-
 
 ; rsi - buffer
 ; rdi - tmp
@@ -67,6 +54,7 @@ parse: ; -> [num1], [num2], [op]
 
 	PARSE_NUM ; -> rax
 
+
 	cmp byte [tmp_op], '-'
 	jne .not_neg
 	neg rax
@@ -75,28 +63,17 @@ parse: ; -> [num1], [num2], [op]
 
 	PRE_SKIP_SPACE
 
-	IS_SIGN
+	IS_OP
 
 	; PARSE_OP
 
 	mov [operator], di
 
-	PRE_SKIP_SPACE
+	mov operator
 
-	IS_NUM_OR_SIGN
-
-	PARSE_NUM
-
-	cmp byte [tmp_op], '-'
-	jne .not_neg
-	neg rax
-.not_neg:
-	mov qword [num2], rax
-
-	mov rax, 0
-	ret
-
-
+;
+;
+;
 ; rsi - pointer
 ; rbx
 ; пропускать пока пробелы

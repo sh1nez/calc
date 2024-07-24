@@ -23,8 +23,11 @@
     je short .true_op  
     cmp rbx, '/' 
     je short .true_op  
-
+    cmp rbx, '%' 
+    je short .true_op  
     mov rax, 1   
     ret
 .true_op:
 %endmacro
+
+
