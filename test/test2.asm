@@ -1,63 +1,5 @@
-%macro PRE_SKIP_SPACE 0
-.pre_space_loop:
-	movzx di, byte [rsi]
-	cmp di, ' '
-	je short .pre_space_loop
-%endmacro
-
-%macro POST_SKIP_SPACE 0
-.post_space_loop:
-	cmp rdi, ' '
-	movzx rdi, byte [rsi]
-	je short .post_space_loop
-%endmacro
-
-; rcx - sum
-%marco PARSE_NUM 0
-	xor rax, rax
-	mov rbx, 10
-.num_loop:
-	movzx rdi, byte [rsi]
-	cmp rdi, '0'
-	jb short .num_end
-	cmp rdi, '9'
-	ja short .num_end
-	sub rdi, '0'
-	mul rbx
-	add rax, rdi
-	inc rsi
-	jmp short .num_loop
-.num_end:
-%endmacro
-	
-
-%macro IS_NUM_OR_SIGN 0
-	cmp rbx, '0'
-	jb short .not_num
-	cmp rbx, '9'
-	ja short .not_num
-	jmp short .true_num_sign
-.not_num_sign:
-	cmp rbx, '-'
-	je short .true_num
-	cmp rbx, '+'
-	je short .true_num_sign
-	mov rax, 1
-	ret
-.true_num_sign:
-%endmacro
-
-%macro IS_SIGN 0
-	cmp rbx, '-'
-	je short .true_num
-	cmp rbx, '+'
-	je short .true_num_sign
-	mov rax, 1
-	ret
-.true_num_sign:
-%endmacro
-;
-;
+%include "../lib/check.inc"
+%include "../lib/parse.inc"
 
 section .bss
 	buffer resb 128
@@ -74,7 +16,8 @@ section .data
 section .text
 	global _start
 	extern invalid_syntax
-
+	extern num2str
+	extern strlen
 
 _start:
 .main_loop:
@@ -94,7 +37,15 @@ _start:
 
 	test rax, rax
 	jnz short .end:
-	jnp .main_loop
+
+	call calc
+	jrcxz .end
+
+	call strlen ; -> rdx
+
+	call num2str
+
+	jmp .main_loop
 
 .end:
 	call invalid_syntax
@@ -102,24 +53,6 @@ _start:
 	mov rax, 60
 	xor rdi, rdi
 	syscall
-
-
-; rax, rdx, rsi
-num2str:
-	push rdx
-	add rsi, rdx
-	mov byte [rsi], '\n'
-	mov rbx, 10
-.str_loop:
-	xor rdx, rdx
-	div rbx
-	add dl, '0'
-	dec rsi
-	mov byte [rsi], dl
-	test rax, rax
-	jnz .str_loop
-	pop rdx
-	ret
 
 
 ; rsi - buffer
@@ -133,7 +66,6 @@ parse: ; -> [num1], [num2], [op]
 	mov byte [tmp_op], di
 
 	PARSE_NUM ; -> rax
-
 
 	cmp byte [tmp_op], '-'
 	jne .not_neg
@@ -149,53 +81,22 @@ parse: ; -> [num1], [num2], [op]
 
 	mov [operator], di
 
-	mov operator
+	PRE_SKIP_SPACE
 
-	; if \n -> 
-	; else
+	IS_NUM_OR_SIGN
+
+	PARSE_NUM
+
+	cmp byte [tmp_op], '-'
+	jne .not_neg
+	neg rax
+.not_neg:
+	mov qword [num2], rax
+
+	mov rax, 0
+	ret
 
 
-;
-; %macro PARSE_NUM
-; 	mov r8, 1; for negative
-; 	cmp rbx, '0'
-; 	jb short .not_num_sign
-; 	cmp rbx, '9'
-; 	ja short .not_num_sign
-; 	jmp short .true_num_sign ; если число, значит положительное, парсим дальше
-; .not_num_sign:
-; 	cmp rbx, '-'
-; 	je short .neg_true_num_sign
-; 	cmp rbx, '+'
-; 	je short .true_num_sign
-; 	mov rax, 1
-; 	ret
-; .neg_true_num_sign:
-; 	neg -1
-; .true_num_sign:
-; 	mul r8
-; 	mov [num1], rax
-; %endmacro
-
-; %macro IS_OP 0
-;     cmp rbx, '+' 
-;     je short .true_op  
-;     cmp rbx, '-' 
-;     je short .true_op  
-;     cmp rbx, '*' 
-;     je short .true_op  
-;     cmp rbx, '/' 
-;     je short .true_op  
-;     cmp rbx, '%' 
-;     je short .true_op  
-;     mov rax, 1   
-;     ret
-; .true_op:
-; %endmacro
-;
-;
-;
-;
 ; rsi - pointer
 ; rbx
 ; пропускать пока пробелы
