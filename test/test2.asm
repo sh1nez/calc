@@ -3,8 +3,6 @@ section .bss
 	output resb 32
 	num1 resb 8
 	num2 resb 8
-	operator resb 1
-	tmp_op resb 1
 
 section .data
 	text1 db "input string (format: 'num1 op num2'):   ", 0
@@ -12,7 +10,11 @@ section .data
 
 section .text
 	global _start
-	extern invalid_syntax
+	; lib/error.asm
+	extern invalid_syntaxsys
+	extern division_by_zero
+	extern num2str
+	extern numlen
 
 
 _start:
@@ -30,6 +32,12 @@ _start:
 	syscall
 
 	call parse
+
+	call calc
+
+	call numlen
+
+	call num2str
 
 	test rax, rax
 	jnz short .end:
@@ -69,10 +77,40 @@ parse: ; -> [num1], [num2], [op]
 
 	mov [operator], di
 
-	mov operator
+	ret
 
-;
-;
+calc: ; rdx rcx  
+    movzx rcx, byte [operator] 
+    cmp rcx, '*'
+    je short .multiply
+    cmp rcx, '+'
+    je short .add
+    cmp rcx, '-' 
+    je short .subtract
+    cmp rcx, '/'
+    je short .divide
+    jmp .end
+
+.multiply:
+    imul rax, rbx
+	ret
+
+.add:
+    add rax, rbx
+	ret
+
+.subtract:
+    sub rax, rbx 
+	ret
+
+.divide:
+    test rbx, rbx
+
+    xor rdx, rdx
+    div rbx
+	ret
+
+
 ;
 ; rsi - pointer
 ; rbx

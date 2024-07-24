@@ -3,7 +3,7 @@
 TARGET := calc
 BUILD_DIR := build
 SRC := $(wildcard src/*.asm)
-OBJ := $(SRC:src/%.asm=$(BUILD_DIR)/%.o)
+OBJ := $(SRC:src/%.asm=$(BUILD_DIR)/%.o) 
 ASFLAGS := -f elf64 
 LDFLAGS := 
 

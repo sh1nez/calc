@@ -16,7 +16,7 @@ num2str:
 	ret
 
 ;rax 
-strlen:  ; -> rdx
+numlen:  ; -> rdx
 	xor rcx, rcx 
 	mov rbx, 10
 .strlen_loop:

@@ -23,9 +23,12 @@ _start:
 	mov rdx, 32
 	call int2str
 
-	mov rax, 1
+	call calc
+
+	call num2str
+
+	mov rax, 1 ;output
 	mov rdi, 1
-	mov rdx, 32
 	syscall
 
 
