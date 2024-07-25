@@ -1,24 +1,25 @@
 %macro PRE_SKIP_SPACE 0
-.pre_space_loop:
-	movzx di, byte [rsi]
-	cmp di, ' '
-	je short .pre_space_loop
+    %%skip_space:
+        mov dil, byte [rsi]
+        cmp dil, ' '
+        jne %%done_skip_space
+        inc rsi
+        jmp %%skip_space
+    %%done_skip_space:
 %endmacro
 
-; rcx - sum
+
 %macro PARSE_NUM 0
-	xor rax, rax
-	mov rbx, 10
-.num_loop:
-	movzx rdi, byte [rsi]
-	cmp rdi, '0'
-	jb short .num_end
-	cmp rdi, '9'
-	ja short .num_end
-	sub rdi, '0'
-	mul rbx
-	add rax, rdi
+    xor rax, rax
+%%parse_loop:
+	mov dil, byte [rsi]
+	sub dil, '0'
+	jb %%done_parse_num
+	cmp dil, 9
+	ja %%done_parse_num
+	imul rax, rax, 10
+	add rax, dil
 	inc rsi
-	jmp short .num_loop
-.num_end:
+	jmp %%parse_loop
+%%done_parse_num:
 %endmacro

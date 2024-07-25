@@ -10,9 +10,12 @@ section .data
 
 section .text
 	global _start
+
 	; lib/error.asm
 	extern invalid_syntaxsys
 	extern division_by_zero
+
+	;lib/ str.asm
 	extern num2str
 	extern numlen
 
@@ -32,6 +35,8 @@ _start:
 	syscall
 
 	call parse
+	test rax, rax
+	jnz .end
 
 	call calc
 
@@ -39,9 +44,10 @@ _start:
 
 	call num2str
 
-	test rax, rax
-	jnz short .end:
-	jnp .main_loop
+	mov rax, 1
+	mov rdi, 1
+	syscall
+	jmp .main_loop
 
 .end:
 	call invalid_syntax
@@ -57,37 +63,25 @@ parse: ; -> [num1], [num2], [op]
 
 	IS_NUM_OR_SIGN
 
-	;parse op
-	mov byte [tmp_op], di
-
 	PARSE_NUM ; -> rax
-
-
-	cmp byte [tmp_op], '-'
-	jne .not_neg
-	neg rax
-.not_neg:
-	mov qword [num1], rax
 
 	PRE_SKIP_SPACE
 
 	IS_OP
 
-	; PARSE_OP
-
-	mov [operator], di
+	PARSE_NUM ; -> rax
 
 	ret
 
-calc: ; rdx rcx  
-    movzx rcx, byte [operator] 
-    cmp rcx, '*'
+calc: ; rdx dil
+    mov dil, byte [operator] 
+    cmp dil, '*'
     je short .multiply
-    cmp rcx, '+'
+    cmp dil, '+'
     je short .add
-    cmp rcx, '-' 
+    cmp dil, '-' 
     je short .subtract
-    cmp rcx, '/'
+    cmp dil, '/'
     je short .divide
     jmp .end
 
@@ -105,10 +99,12 @@ calc: ; rdx rcx
 
 .divide:
     test rbx, rbx
-
+	jz .error
     xor rdx, rdx
     div rbx
 	ret
+.error:
+	call division_by_zero
 
 
 ;
