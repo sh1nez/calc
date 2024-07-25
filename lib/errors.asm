@@ -22,7 +22,7 @@ invalid_syntaxsys:
     ret
 
 section .data
-    division_by_zero_message db "division by zero", 0xA
+	division_by_zero_message db "division by zero", 0xA
     division_by_zero_length equ $ - division_by_zero_message
     invalid_syntaxsys_message db "invalid syntaxsys", 0xA
     invalid_syntaxsys_length equ $ - invalid_syntaxsys_message

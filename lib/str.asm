@@ -1,7 +1,8 @@
 global num2str
 global numlen
-; rax, rdx, rsi
-num2str:
+
+;rax rsi rdx 
+num2str: ;-> rsi
 	push rdx
 	add rsi, rdx
 	mov byte [rsi], 0x0A
@@ -19,12 +20,17 @@ num2str:
 
 ;rax 
 numlen:  ; -> rdx
-	xor rcx, rcx 
+	push rax
 	mov rbx, 10
+	xor rcx, rcx
 .strlen_loop:
+	xor rdx, rdx
 	div rbx
 	inc rcx
 	test rax, rax
 	jnz .strlen_loop
+	pop rax
 	mov rdx, rcx
 	ret
+
+

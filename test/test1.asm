@@ -1,38 +1,29 @@
-section .bss
-	str_buf resb 32
-section .data
-	string db "9999", 0
-	num dq 12345
+print_nums:
+	mov rax, 1
+	mov rdi, 1
+	mov rsi, text2
+	mov rdx, len2
+	syscall
 
-section .text
-	global _start
-	extern str2int; rsi -> rax
-	extern int2str; rsi -> rax + rdx
-	; extern strlen; rsi -> rcx
-
-_start:
-	mov rax, [num]
-	mov rsi, str_buf
-	mov rdx, 32
-	call int2str ;
-
-	mov rdx, 4
-	call str2int
-
-	mov rsi, str_buf
-	mov rdx, 32
-	call int2str
-
-	call calc
-
+	mov rax, qword [num1]
+	call numlen
+	mov rsi, num1
 	call num2str
 
-	mov rax, 1 ;output
+	PRINT num1, rdx
+
+	mov rax, 1
 	mov rdi, 1
+	mov rsi, operator
+	mov rdx, 1
 	syscall
 
+	mov rax, qword [num2]
+	call numlen
+	mov rsi, num2
+	call num2str
+
+	PRINT num2, rdx
 
 
-	mov rax, 60
-	xor rdi, rdi
-	syscall
+	PRINT nline, 1

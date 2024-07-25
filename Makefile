@@ -1,7 +1,8 @@
-.PHONY: all clean test1 test test2 lib app
+.PHONY: all clean test1 test lib app
 
 TARGET := calc
 BUILD_DIR := build
+SRC_DIR := src
 SRC := $(wildcard src/*.asm)
 OBJ := $(SRC:src/%.asm=$(BUILD_DIR)/%.o) 
 ASFLAGS := -f elf64
@@ -16,15 +17,13 @@ LIB_TARGET = $(BUILD_DIR)/$(LIB_DIR)/lib.a
 LIB_SRC := $(wildcard lib/*.asm)
 LIB_OBJ := $(patsubst $(LIB_DIR)/%.asm,$(BUILD_DIR)/$(LIB_DIR)/%.o,$(LIB_SRC))
 
-test: lib test1 test2
+test: lib test1
 
 lib: $(LIB_TARGET)
 
 $(LIB_TARGET): $(LIB_OBJ)
 	ar rcs $@ $^
 
-# $(LIB_OBJ): $(LIB_SRC) 
-# 	nasm $(ASFLAGS) -o $@ $<
 $(BUILD_DIR)/$(LIB_DIR)/%.o: $(LIB_DIR)/%.asm | lib_dir
 	nasm $(ASFLAGS) -o $@ $<
 
@@ -46,32 +45,9 @@ test1: $(TEST1_SRC) $(LIB_TARGET)
 	@ ./$(TEST1_TARGET)
 	@ echo
 
-TEST2 := test2
-TEST2_SRC := $(TEST_DIR)/$(TEST2).asm
-TEST2_OBJ := $(BUILD_DIR)/$(patsubst $(TEST_DIR)/%.asm,$(TEST2)/%.o,$(TEST2_SRC))
-TEST2_TARGET := $(BUILD_DIR)/$(TEST2)/$(TEST2)
-
-test2: $(TEST2_SRC) $(LIB_TARGET)
-	@ mkdir --parents $(BUILD_DIR)/$(TEST2)
-	nasm $(ASFLAGS) -o $(TEST2_TARGET).o $(TEST2_SRC)
-	ld -o $(TEST2_TARGET) $(TEST2_OBJ) $(LIB_TARGET)
-	@ echo -en "\ntest2: "
-	@ ./$(TEST2_TARGET)
-	@ echo
-
-
-TEST3_TARGET := $(BUILD_DIR)/test3/test3
-test3: $(TEST_DIR)/test3.asm
-	@mkdir --parents $(BUILD_DIR)/test3/
-	nasm $(ASFLAGS) -g -o $(BUILD_DIR)/test3/test3.o $(TEST_DIR)/test3.asm
-	ld -o $(TEST3_TARGET) $(BUILD_DIR)/test3/test3.o 
-	@ echo -en "\ntest3: "
-	@ ./$(TEST3_TARGET)
-
-
 app: $(LIB_TARGET) $(TARGET)
 
-$(OBJ): src/%.asm | dir_src
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.asm | dir_src
 	@ nasm $(ASFLAGS) -o $@ $<
 
 dir_src:
