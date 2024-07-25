@@ -11,14 +11,15 @@
 
 %macro PARSE_NUM 0
     xor rax, rax
+	mov rbx, 10
 %%parse_loop:
-	mov dil, byte [rsi]
-	sub dil, '0'
+	movzx rdi, byte [rsi]
+	sub rdi, '0'
 	jb %%done_parse_num
-	cmp dil, 9
+	cmp rdi, 9
 	ja %%done_parse_num
-	imul rax, rax, 10
-	add rax, dil
+	mul rbx
+	add rax, rdi
 	inc rsi
 	jmp %%parse_loop
 %%done_parse_num:

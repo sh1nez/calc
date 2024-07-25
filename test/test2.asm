@@ -1,12 +1,39 @@
+%include "lib/check.inc"
+%include "lib/parse.inc"
+
+%macro PRINT 0
+	push rax
+	push rdi
+	push rsi
+	push rdx
+
+	mov rax, 1
+	mov rdi, 1
+	mov rdx, printlen
+	mov rsi, message
+	syscall
+
+	pop rdx
+	pop rsi
+	pop rdi
+	pop rax
+%endmacro
+
 section .bss
 	buffer resb 128
 	output resb 32
 	num1 resb 8
 	num2 resb 8
+	operator resb 1
 
 section .data
 	text1 db "input string (format: 'num1 op num2'):   ", 0
 	len1 equ $ - text1
+	text2 db "result: ", 0
+	len2 equ $ - text2
+	message db "1", 0x0A
+	printlen equ $ - message
+
 
 section .text
 	global _start
@@ -38,6 +65,12 @@ _start:
 	test rax, rax
 	jnz .end
 
+	mov rax, 1
+	mov rdi, 1
+	mov rsi, text2
+	mov rdx, len2
+	syscall
+
 	call calc
 
 	call numlen
@@ -50,7 +83,7 @@ _start:
 	jmp .main_loop
 
 .end:
-	call invalid_syntax
+	call invalid_syntaxsys
 
 	mov rax, 60
 	xor rdi, rdi
@@ -61,15 +94,31 @@ _start:
 parse: ; -> [num1], [num2], [op] 
 	PRE_SKIP_SPACE
 
+	PRINT
+
 	IS_NUM_OR_SIGN
 
+	PRINT
+
 	PARSE_NUM ; -> rax
+
+	mov qword [num1], rax
 
 	PRE_SKIP_SPACE
 
+	PRINT
+
 	IS_OP
 
+	PRINT
+
+	mov byte [operator], dil
+	inc rsi
+
+	IS_NUM_OR_SIGN
+
 	PARSE_NUM ; -> rax
+	mov qword [num2], rax
 
 	ret
 
@@ -81,9 +130,8 @@ calc: ; rdx dil
     je short .add
     cmp dil, '-' 
     je short .subtract
-    cmp dil, '/'
-    je short .divide
-    jmp .end
+    ; cmp dil, '/'
+    jmp short .divide
 
 .multiply:
     imul rax, rbx
@@ -99,13 +147,12 @@ calc: ; rdx dil
 
 .divide:
     test rbx, rbx
-	jz .error
+	jz short .error
     xor rdx, rdx
     div rbx
 	ret
 .error:
 	call division_by_zero
-
 
 ;
 ; rsi - pointer

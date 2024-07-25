@@ -1,8 +1,10 @@
+global num2str
+global numlen
 ; rax, rdx, rsi
 num2str:
 	push rdx
 	add rsi, rdx
-	mov byte [rsi], '\n'
+	mov byte [rsi], 0x0A
 	mov rbx, 10
 .str_loop:
 	xor rdx, rdx
